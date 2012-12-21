@@ -1,0 +1,62 @@
+\documentclass[a4paper,10pt, twocolumn]{article}
+
+%Packages
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage[utf8x]{inputenc} %accenti in Linux
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+%\usepackage[latin1]{inputenc} %accenti in Windows
+
+%Commands
+\newcommand{\Fig}[1]{Fig.~\ref{#1}}
+\newcommand{\Tab}[1]{Table~\ref{#1}}
+\newcommand{\annex}{Annex}
+\newcommand{\tab}{Table}
+\newcommand{\sect}{Section}
+\newcommand{\scode}[1]{\texttt{#1}} %In-line code
+
+% Title Page
+\title{math-parser}
+\author{Riccardo Manfrin \\ \{namesurnameatthemostpopularemailaccountproviderdotcom\}}
+
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[scale=0.40]{pics/fig00.png}
+%   \caption{Device architecture}\label{fig:02:name}
+% \end{figure}
+
+% \begin{table*}[htbp]
+% \centering
+% \scriptsize
+%  \begin{tabular}{|c|c|l|}
+%  \hline
+%  \end{tabular}
+%  \small
+%  \caption{cap}\label{table:xxx:label}
+% \end{table*}
+
+
+
+\lstset{
+	frame=tb,	%Possible attributes : single,TB,tb,lrtb,LRTB
+	basicstyle=\scriptsize,
+	%columns=fullflexible,
+	fontadjust=true,
+	commentstyle=\itshape,
+	language=c,
+	breaklines=true,
+}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+This is a short documentation to explain how to realize a runtime math parser library in C.
+In order to produce a flexible parser it is important to grant it the required flexibility. In particular we want our parser to handle any new operator's definitions.
+The guide will try to give a practical approach based on personal experience to develop such parser.
+\end{abstract}
+\input{chapter00}
+\input{annex}
+\end{document}
+

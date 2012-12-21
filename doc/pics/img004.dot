@@ -1,0 +1,42 @@
+
+digraph TREE_EXPANSION{
+	label="RECURSIVE PREORDER BINARY TREE PARSER EXPANSION";
+	//size="6,10";
+	ratio=fill;
+	process_node									[label="process_node(curr)"];
+	to_expand										[label="state==TO_EXPAND" shape=diamond];
+	find_extern_brackets 						[label="find_extern_brackets" shape=diamond];
+	return0											[label="return"];
+	find_highest_priority_operation			[label="find_highest_\npriority_operation\n(outside brackets?)"];
+	set_node_to_calc								[label="set_curr_node(TO_CALC)"];
+	return1											[label="return"];
+	trim_expression								[label="trim_expression"];
+	generate_subtree								[label="generate_subtree"];
+	fill_op_nodes									[label="fill_op_nodes"];
+	fill_leaf_nodes								[label="fill_leaf_nodes\n(with expr. tokens)"];
+	set_op_nodes_to_calc							[label="set_op_nodes(TO_CALC)"];
+	set_leaf_nodes_to_expand					[label="set_leaf_nodes(TO_EXPAND)"];
+	
+	process_node -> to_expand;
+	to_expand->find_extern_brackets 										[label="Y"];
+	to_expand->return0 														[label="N"];
+	find_extern_brackets->find_highest_priority_operation 		;
+	find_highest_priority_operation->trim_expression				[label="found"];
+	find_highest_priority_operation->set_node_to_calc				[label="not found"];
+	set_node_to_calc->return1;
+	trim_expression->generate_subtree;
+	generate_subtree->fill_op_nodes;
+	fill_op_nodes->fill_leaf_nodes;
+	fill_leaf_nodes->set_op_nodes_to_calc;
+	set_op_nodes_to_calc->set_leaf_nodes_to_expand;
+	set_leaf_nodes_to_expand->return1;
+	
+	
+	
+	
+}
+
+
+
+
+

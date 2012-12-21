@@ -1,0 +1,211 @@
+	1.		EXPANDING FUNCTIONS PROTOTYPE
+	
+	1.1	Input
+		
+		- int n_internal_nodes: nodes that implement operations
+		  (not operands).
+		- int n_external_nodes: nodes that implement operands
+		  (not operators).
+		- btree **bt: array of btree nodes to expand set of 
+		  operations.
+		- operator: in order to avoid reimplementing the same
+		  functions we prefer to include the operator in the 
+		  input arguments and use it to specialize behavior.
+		
+	1.2	Output
+
+		- btree *rootbt: pointer to the root subtree generated
+		  by expanding the expression.
+
+	2.		EXPANDING FUNCTIONS IMPLEMENTATION
+	
+	2.1	Operations sum, mult, sub, div
+	
+		a + b + c + d + e + f + g + h
+		a * b * c * d * e * f * g * h
+		
+            SUM                  MULT
+                  +                    *
+               +     +              *     *
+            +  +     +  +        *  *     *  *
+          a b c d   e f g h    a b c d   e f g h
+		
+		a - b - c - d - e - f - g - h
+		a \ b \ c \ d \ e \ f \ g \ h
+
+            SUB                  DIV
+                  -                    /
+               -     +              /     *
+            -  +     +  +        /  *     *  *
+          a b c d   e f g h	   a b c d   e f g h
+
+
+		a + b + c + d + e
+
+                +
+               / \
+              /   \
+             +     +		<- higer level operator nodes 
+            / \	/ \
+           +  a b  c	<- lower level operator nodes
+          / \
+         d   e
+
+      [operands order doesn't matter]
+
+      a-b-c-d-e
+
+		   -
+		  / \
+		 /   \
+		-     +		<- higer level operator nodes 
+               / \   / \
+	      -   c d   e	<- lower level operator nodes
+             / \
+            a   b
+
+	[operands order does matter]
+
+   Solution: 
+   1) fill with minus operators indexes i = 2^N -1
+    (leftmost operator nodes)
+   2) fill with first operands lower level leaf nodes
+    (a,b) and higher level with last operands (c,d,e)
+
+   How to calculate operands starting index: 
+
+	lower_level_operators =
+	= n_internal_nodes - 
+	+ ((2 ^ floor(log(n_internal_nodes))) - 1) =
+	= 4 - ((2 ^ 2) -1) = 1;
+
+	lower_level_operands = 2 * lower_level_operators;
+
+	2.2	Operations mod (%)
+	
+	a % b % c % d = ( (a % b) % c) % d
+
+                          %
+                         / \
+                        %   d
+                       / \
+                      %   c
+                     / \
+                    a   b
+
+	We must treat MOD (%) as a different operator than DIV
+	or the other 2O operators, as it doesn't have an 
+	opposite operation, hence it cannot be expanded in a
+	balanced fashion as the previous operators.
+
+	2.3	One operands operators
+
+	op(arg) [generic]
+
+				op
+				  \
+				   \
+				   (arg)
+	
+	Note: we can only have one single 1o operation at a time.
+
+	3.		OPERATIONS PRIORITY
+	
+   In mathematics operations implicitly have priority when an 
+   expression is computed.
+   We define the priority property betweeen two distinct operations
+   as the relationship that rules which of the two must be executed
+   in order to create the operands values required by the latter.
+   
+   We define a operation with lower priority, one that has to be 
+  	computed later with respect to another with higher priority.
+   
+   2O operations have a lower priority over 1O ones. Within
+   2O operations we have different priorities again. Within 
+   each 2O operation different rules apply, such as starting 
+   computations from leftmost or rightmost ones.
+   
+   When it comes to 1O operations, these do not have an implicit
+   priority one with respect to each other. What determines priority
+   in an expression where we have 1O operators, is the usage of
+   brackets to embed or not other operations.
+   In general the most embedded operations (enclosed in brackets) 
+   are computed before the ones appearing more outside.
+   
+   As 1O ops do not have a priority, we can arrange their sequence
+   (and priority) as we desire.
+   Note that we still have to guarantee a lexical property in order
+   to avoid nasty errors:
+   
+   If two operators present the same postfix token but one or both
+   of them have a [two] prefix [es], we must make sure that the
+   op with longer string expression has higher priority than the 
+   one with shorter or non existing prefix. For example,
+   when setting priority for ATAN and TAN, ATAN must have higher
+   priority than TAN. 
+   This approach does not represent a threat, as we stated above 
+   that 1O operations all have the same priority and we we think
+   to extending thefunction set we all think to this type (1O) of
+   functions
+	
+	4.		USER DEFINED FUNCTIONS AND VARIABLES
+	
+	User mathematical expressions can consist of 
+		- numerical operands
+		- standard operations
+		- user-defined functions
+		- user-defined variables
+		
+	4.1	User-defined variables.
+	
+	When specifying a new variable all you need to decleare is 
+	the variable name and value. Each time something that is not
+	a number nor operator nor a user-defined function is found
+	the parser will assume it's a variable.
+	When the binary tree is expanded the parser doesn't require the
+	variable to have an assigned value. The assignment must in
+	any case be done prior calculating the parsed expression result.
+		
+	Variables names may consist of alphanumerical expressions
+	
+	In order to define a variable the parser_var function should be
+	used.
+	
+	4.2 User-defined functions.
+	
+	In order for the expression input to be correctly expanded by
+	the parser, all user defined functions must be 
+	declared before the expression input is parsed (expanded) into
+	the relative binarytree. Otherwise those shall be confused with
+	user-defined variables.
+	
+	When specifying a user-defined function you need to specify
+	
+		- function name:
+		  The function name must be in the format
+		  function_name(operator1, operator2, ...)
+		  where function_name must be an alpha-numerical expression
+		  
+		- function expansion [with standard operators or other
+		  existing (predefined) user-defined functions]
+		- number of arguments
+	
+	This information is delivered to the parser prior inserting the 
+	mathematical expression to solve for now, as we want to explode
+	the user functions before generating the btree required to the
+	solver function.
+	
+	A proposal for the future is to track these user defined functions
+	within the generated binary tree and expand them from there (as we
+	are always talking about leaf nodes anyway).
+	Another proposal for the future is to allow non existing user-defined
+	function within other user-defined functions (the parser will take
+	care of determining the correct substitutions, starting from the 
+	one functions that are not defined based on other user-defined ones).
+	For now ALL user defined function must be defined not just before
+	calculation but also BEFORE EXPRESSION	INPUT.
+	
+
+
+
+

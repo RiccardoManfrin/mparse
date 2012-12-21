@@ -1,0 +1,49 @@
+//Basic idea behind is tha
+//When you go down you try to go left until you can. When you can't you 
+//try to go right. If you succeed you try left. If you don't you try 
+//right. When you can't go left and you can't go right you start to go up 
+//[going back to parent notes]. Every time you come back up from a LEFT 
+//node you try to go right once and down again. When you come back up from 
+//a RIGHT node, you continue to go up, until you find the root (coming 
+//from the right). That stops the algorithm.
+
+
+
+digraph BTREEITER{
+	label="ITERATIVE BINARY TREE PREODER SEARCH";
+	currISroot 		[label="curr=root"];
+	currisnull000		[label="curr==NULL" shape=diamond];
+	return000 		[label="return"];
+	return001 		[label="return"];
+	leftisnull000		[label="curr.left==NULL" shape=diamond];
+	rightisnull000		[label="curr.right==NULL" shape=diamond];
+	goleft000 		[label="curr=curr.left"];
+	goright000 		[label="curr=curr.right"];
+	goup000 		[label="curr=curr.parent"];
+	op000	  		[label="action(curr)"];
+	root_rightiscurr	[label="root.right==curr ||\n(curr==root &&\n root.right==NULL)" shape=diamond];
+	curr_parent_rightiscurr	[label="curr.parent.right==curr" shape=diamond];
+	goupup000		[label="curr=curr.parent.parent"];
+
+	currISroot->currisnull000
+	currisnull000->return000 [label="Y"];
+	currisnull000->op000 [label="N"];
+	op000->leftisnull000;
+	leftisnull000->goleft000 [label="N"];
+	leftisnull000->rightisnull000 [label="Y"];
+	rightisnull000->goright000 [label="N"];
+	rightisnull000->root_rightiscurr [label="Y"];
+	root_rightiscurr->return001 [label="Y"];
+	root_rightiscurr->curr_parent_rightiscurr [label="N"];
+	goleft000->op000;
+	goright000->op000;
+	curr_parent_rightiscurr->goup000 [label="N"];
+	goup000->rightisnull000;
+	curr_parent_rightiscurr->goupup000 [label="Y"];
+	goupup000->rightisnull000;
+}
+
+
+
+
+
