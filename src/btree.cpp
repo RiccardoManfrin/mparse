@@ -16,12 +16,6 @@ btree_item_t::btree_item_t(){
 	right=NULL;
 }
 
-btree_item_t::~btree_item_t(){
-	if(left) left->~btree_item_t();
-	if(right) right->~btree_item_t();
-	delete this;
-}
-
 //***************************************************************************************************//
 
 btree_t::btree_t(){
@@ -30,13 +24,14 @@ btree_t::btree_t(){
 
 btree_t::~btree_t(){
 	destroy(root);
-	delete this;
 }
 
 void btree_t::destroy(btree_item_t* item){
-	if(root) delete root;
-	destroy(root->left);
-	destroy(root->right);
+	if(item) {
+		if(item->left) destroy(item->left);
+		if(item->right) destroy(item->right);
+		delete item;
+	}
 }
 
 void btree_t::print(){

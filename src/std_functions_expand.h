@@ -1,10 +1,8 @@
 #include "list.h"
 #include "btree.h"
-#include "lib_parse.h"
-#include "std_functions.h"
 
-static parser_btree_item_t * fill_operator_node(op_id optor);
-static parser_btree_item_t * fill_operand_node(char * expr);
+parser_btree_item_t * fill_operator_node(op_id optor);
+parser_btree_item_t * fill_operand_node(char * expr);
 
 /** 
  * In order to add a new standard function, you need to perform
@@ -21,10 +19,10 @@ static parser_btree_item_t * fill_operand_node(char * expr);
  *	6) Increase the "NOTOP" value by one in std_functions.h
  */
 
-static btree_item_t * expand_std_2op_func(struct operation *me, btree_item_t **bt, list_t *tokens){
+static parser_btree_item_t * expand_std_2op_func(struct operation_t *me, parser_btree_item_t **bt, list_t *tokens){
 	int operations = tokens->count()-1;
 	if(operations>0)
-	{	
+	{
 		unsigned int n_internal_nodes = operations;
 		unsigned int n_external_nodes = n_internal_nodes+1;
 		unsigned int count = 0;
@@ -60,7 +58,7 @@ static btree_item_t * expand_std_2op_func(struct operation *me, btree_item_t **b
 			///LEFT Filling (to_append > internal && external > to_append) ==> (operand) 
 			else
 			{
-				bt[to_append] = fill_operand_node((char *) tokens->pop((((operands_upperlayer--))>0)?(operands_start_index):(0)));
+				bt[to_append] = fill_operand_node(((parser_string_list_item_t *)(tokens->pop(((operands_upperlayer--)>0)?(operands_start_index):(0))))->str);
 			}
 			///Connecting
 			bt[count]->left = bt[to_append];
@@ -77,7 +75,7 @@ static btree_item_t * expand_std_2op_func(struct operation *me, btree_item_t **b
 			///RIGHT Filling (to_append > internal && external> to_append) ==> (operand)
 			else
 			{
-				bt[to_append] = fill_operand_node(((parser_btree_item_t *)tokens->pop((((operands_upperlayer--))>0)?(operands_start_index):(0)))->expr);
+				bt[to_append] = fill_operand_node(((parser_string_list_item_t *)tokens->pop((((operands_upperlayer--))>0)?(operands_start_index):(0)))->str);
 			}
 			///Connecting
 			bt[count]->right = bt[to_append];
@@ -91,19 +89,19 @@ static btree_item_t * expand_std_2op_func(struct operation *me, btree_item_t **b
 }
 
 #define SUM_EXPAND expand_sum_func
-static btree_item_t * (* expand_sum_func)(struct operation *, btree_item_t **, list_t *) = expand_std_2op_func;
+static parser_btree_item_t * (* expand_sum_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_std_2op_func;
 
 #define SUB_EXPAND expand_sub_func
-static btree_item_t * (* expand_sub_func)(struct operation *, btree_item_t **, list_t *) = expand_std_2op_func;
+static parser_btree_item_t * (* expand_sub_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_std_2op_func;
 
 #define MULT_EXPAND expand_mult_func
-static btree_item_t * (* expand_mult_func)(struct operation *, btree_item_t **, list_t *) = expand_std_2op_func;
+static parser_btree_item_t * (* expand_mult_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_std_2op_func;
 
 #define DIV_EXPAND expand_div_func
-static btree_item_t * (* expand_div_func)(struct operation *, btree_item_t **, list_t *) = expand_std_2op_func;
+static parser_btree_item_t * (* expand_div_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_std_2op_func;
 
 
-static btree_item_t * expand_alt_2op_func(struct operation *me, btree_item_t **bt, list_t *tokens){
+static parser_btree_item_t * expand_alt_2op_func(struct operation_t *me, parser_btree_item_t **bt, list_t *tokens){
 	int operations = tokens->count()-1;
 	if(operations>0)
 	{	
@@ -144,12 +142,12 @@ static btree_item_t * expand_alt_2op_func(struct operation *me, btree_item_t **b
 }
 
 #define MOD_EXPAND expand_mod_func
-static btree_item_t * (* expand_mod_func)(struct operation *, btree_item_t **, list_t *) = expand_alt_2op_func;
+static parser_btree_item_t * (* expand_mod_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_alt_2op_func;
 
 #define EXP_EXPAND expand_exp_func
-static btree_item_t * (* expand_exp_func)(struct operation *, btree_item_t **, list_t *) = expand_alt_2op_func;
+static parser_btree_item_t * (* expand_exp_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_alt_2op_func;
 
-static btree_item_t * expand_1op_func(struct operation *me, btree_item_t **bt, list_t *tokens){
+static parser_btree_item_t * expand_1op_func(struct operation_t *me, parser_btree_item_t **bt, list_t *tokens){
 	///ROOT Filling
 	bt[0] = fill_operator_node(me->id);
 	
@@ -163,33 +161,33 @@ static btree_item_t * expand_1op_func(struct operation *me, btree_item_t **bt, l
 }
 
 #define COS_EXPAND expand_cos_func
-static btree_item_t * (* expand_cos_func)(struct operation *, btree_item_t **, list_t *) = expand_1op_func;
+static parser_btree_item_t * (* expand_cos_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_1op_func;
 
 #define SIN_EXPAND expand_sin_func
-static btree_item_t * (* expand_sin_func)(struct operation *, btree_item_t **, list_t *) = expand_1op_func;
+static parser_btree_item_t * (* expand_sin_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_1op_func;
 
 #define TAN_EXPAND expand_tan_func
-static btree_item_t * (* expand_tan_func)(struct operation *, btree_item_t **, list_t *) = expand_1op_func;
+static parser_btree_item_t * (* expand_tan_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_1op_func;
 
 #define ATAN_EXPAND expand_atan_func
-static btree_item_t * (* expand_atan_func)(struct operation *, btree_item_t **, list_t *) = expand_1op_func;
+static parser_btree_item_t * (* expand_atan_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_1op_func;
 
 #define NEP_EXPAND expand_nep_func
-static btree_item_t * (* expand_nep_func)(struct operation *, btree_item_t **, list_t *) = expand_1op_func;
+static parser_btree_item_t * (* expand_nep_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_1op_func;
 
 #define LOGN_EXPAND expand_logn_func
-static btree_item_t * (* expand_logn_func)(struct operation *, btree_item_t **, list_t *) = expand_1op_func;
+static parser_btree_item_t * (* expand_logn_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_1op_func;
 
 #define LOG2_EXPAND expand_log2_func
-static btree_item_t * (* expand_log2_func)(struct operation *, btree_item_t **, list_t *) = expand_1op_func;
+static parser_btree_item_t * (* expand_log2_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_1op_func;
 
 #define LOG10_EXPAND expand_log10_func
-static btree_item_t * (* expand_log10_func)(struct operation *, btree_item_t **, list_t *) = expand_1op_func;
+static parser_btree_item_t * (* expand_log10_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_1op_func;
 
-static void bind_op(op_id id, char *expr, void *expand_fnptr){
+static void bind_op(op_id id, char *expr, parser_btree_item_t *(* expand_fptr)(struct operation_t *me, parser_btree_item_t **btnodesarray, list_t *tk_indexes)){
 	operation[id].id = id;
 	operation[id].op = expr;
-	operation[id].expand_fptr = expand_fnptr;
+	operation[id].expand_fptr = expand_fptr;
 	return;
 }
 

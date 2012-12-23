@@ -18,22 +18,6 @@
 
 //************************************** LOCAL DEFINES AND MACROS ***********************************//
 
-class parser_idx_list_item_t: public list_item_t{
-public:
-	int idx;
-public:
-	parser_idx_list_item_t(){};
-	parser_idx_list_item_t(int idx){this->idx=idx;};
-};
-
-class parser_string_list_item_t: public list_item_t{
-public:
-	char *str;
-public:
-	parser_string_list_item_t(){str=NULL;}
-	parser_string_list_item_t(char *str){this->str=str;}
-	~parser_string_list_item_t(){if(str) free(str);}
-};
 
 //************************************ STATIC VARIABLES DECLARARTION ********************************//
 
@@ -100,14 +84,7 @@ static list_t* find_extern_brakets(parser_btree_item_t *node, bool *found_except
  * Note that this function only takes care of math functions.
  * A subsequent function should be used to check on variables.
  */
-static list_t* find_extern_highest_prio_op(list_t *brackets, char *expr, op_id *found_op, bool *found_exception);
-
-/**
- * Helper functions for generating subtree (generate_subtree
- * function).
- */
-static parser_btree_item_t * fill_operator_node(op_id optor);
-static parser_btree_item_t * fill_operand_node(char * expr);
+static list_t* find_extern_highest_prio_op(list_t *brackets, char *expr, op_id_t *found_op, bool *found_exception);
 
 /**
  * Free the complex parser_bt_node_t structure
@@ -138,7 +115,7 @@ static parser_val_t parser_bt_calc(parser_btree_item_t *bt, list_t *vars);
  * Takes a node and generate the subtree based on the out of
  * brackets highest priority operations found.
  */
-static parser_btree_item_t *generate_subtree(parser_btree_item_t *bt, list_t *tk_indexes, op_id optor);
+static parser_btree_item_t *generate_subtree(parser_btree_item_t *bt, list_t *tk_indexes, op_id_t optor);
  
 /**
  * This is the function that process the single node
@@ -183,8 +160,6 @@ static void parser_func_free(void *func_def){
 		}
 		return;
 }
-
-#include "std_functions_expand.h"
 
 static void parser_init(){
 	init_func_bind();
@@ -259,7 +234,7 @@ static list_t* find_extern_brakets(parser_btree_item_t *node, bool *found_except
 	return matched;
 }
 
-static list_t *find_extern_highest_prio_op(list_t *brackets, char *expr, op_id* found_op, bool *found_exception){
+static list_t *find_extern_highest_prio_op(list_t *brackets, char *expr, op_id_t* found_op, bool *found_exception){
 	/** 
 	* HERE WE MUST USE A WHILE TO CHECK THE HIGHEST AVAILABLE OPERATOR 
 	* AND WE MUST DISTINGUISH BETWEEN 20 AND 10 OPERATORS
@@ -274,7 +249,7 @@ new_op_check:
 	{
 		to_find = operation[i].op;
 		find(to_find,expr,found);
-		if(found->count())
+		if(!found->count())
 		{
 			i++;
 			*found_op = operation[i].id;
@@ -345,7 +320,7 @@ new_op_check:
 	return NULL;
 }
 
-static parser_btree_item_t * fill_operator_node(op_id optor){
+parser_btree_item_t * fill_operator_node(op_id_t optor){
 	
 	parser_btree_item_t *data=new parser_btree_item_t();
 	//***************************//
@@ -359,10 +334,9 @@ static parser_btree_item_t * fill_operator_node(op_id optor){
 	return data;
 }
 
-static parser_btree_item_t * fill_operand_node(char * expr){
+parser_btree_item_t * fill_operand_node(char * expr){
 	
-	parser_btree_item_t *data=NULL;
-	data=malloc(sizeof(parser_btree_item_t));
+	parser_btree_item_t *data= new parser_btree_item_t();
 	memset(data, 0, sizeof(parser_btree_item_t));
 	//***************************//
 	data->expr = expr;
@@ -373,7 +347,7 @@ static parser_btree_item_t * fill_operand_node(char * expr){
 	return data;
 }
 
-static parser_btree_item_t *generate_subtree(parser_btree_item_t *rootbt, list_t *tk_indexes, op_id optor){
+static parser_btree_item_t *generate_subtree(parser_btree_item_t *rootbt, list_t *tk_indexes, op_id_t optor){
 	char *expr = ((parser_btree_item_t *)rootbt)->expr;
 	int operations = tk_indexes->count();
 	
@@ -512,7 +486,7 @@ static parser_btree_item_t * expand_tree(list_t *userfunctions, parser_btree_ite
 // 		printf("\n");
 		///Phase 2 : finding highest priority out of brackets operators
 		list_t *hpob_op;
-		op_id found_op;
+		op_id_t found_op;
 		
 		if(!found_exception)
 		{
@@ -560,12 +534,12 @@ static parser_btree_item_t * expand_tree(list_t *userfunctions, parser_btree_ite
 	///Phase 5 : Recursive iteration
 	if(node)
 	{
-		if(node->left) if(node->left) if(((parser_btree_item_t*)(node->left))->expr)
+		if( (node->left) && (((parser_btree_item_t*)(node->left))->expr) )
 		{
 			dbg_print(7,"Expanding left node expr: \"%s\"\n", ((parser_btree_item_t*)(node->left))->expr);
 			node->left = expand_tree(userfunctions, node->left);
 		}
-		if(node->right) if(node->right) if(((parser_btree_item_t*)(node->right))->expr)
+		if( (node->right) && (((parser_btree_item_t*)(node->right))->expr) )
 		{
 			dbg_print(7,"Expanding right node expr: \"%s\"\n", ((parser_btree_item_t*)(node->right))->expr);
 			node->right = expand_tree(userfunctions, node->right);
@@ -757,7 +731,7 @@ static parser_val_t parser_bt_calc(parser_btree_item_t *bt, list_t *vars){
 	parser_btree_item_t *btnode = bt;
 	if(btnode->st == CALCULATE)
 	{
-		op_id id = btnode->op;
+		op_id_t id = btnode->op;
 		switch(id)
 		{
 			case(NOTOP):

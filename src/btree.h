@@ -21,7 +21,7 @@ public:
 	btree_item_t();
 	virtual void print(){printf("%08lx\n", (uint64_t) this);};
 	virtual bool compare(btree_item_t *comparable){return (comparable==this);}
-	~btree_item_t();
+	virtual ~btree_item_t(){}
 };
 
 class btree_t{

@@ -12,11 +12,11 @@ list_t::list_t()
 
 list_t::~list_t()
 {
-	list_item_t * next = head->next, * curr=head;
-	while(curr){
-		delete curr;
-		curr=next;
-		if(curr) next=curr->next;
+	list_item_t * curr;
+	while(head){
+		curr=head->next;
+		delete head;
+		head=curr;
 	}
 }
 
@@ -49,15 +49,16 @@ void list_t::swap(uint32_t a, uint32_t b)
 			b--;
 			prev_b=prev_b->next;
 		};
-		list_item_t *item_a= prev_a->next;
-		list_item_t *item_b= prev_b->next;
+		list_item_t *item_a= (prev_a)?(prev_a->next):(head);
+		list_item_t *item_b= (prev_b)?(prev_b->next):(head);
 		next_a=item_a->next;
 		next_b=item_b->next;
 		
-		prev_a->next=item_b;
-		item_b->next=next_a;
-		prev_b->next=item_a;
-		item_a->next=next_b;
+		(prev_a?prev_a->next:head)=item_b;
+		(prev_b?prev_b->next:head)=item_a;
+		list_item_t *tmp= item_b->next;
+		(prev_a?prev_a->next:head)->next = item_a->next;
+		(prev_b?prev_b->next:head)->next = tmp;
 	}
 	return;
 }
@@ -83,6 +84,7 @@ list_item_t * list_t::pop(uint32_t index)
 		if(index==0){
 			found= head;
 			head = head->next;
+			found->next=NULL;
 			return found;
 		}
 		list_item_t *ptr = head;
@@ -92,6 +94,7 @@ list_item_t * list_t::pop(uint32_t index)
 		}
 		found = ptr->next;
 		ptr->next = ptr->next->next;
+		found->next = NULL;
 		return found;
 	}else{
 #ifdef EXCEPTION

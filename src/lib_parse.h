@@ -7,18 +7,19 @@
 #define __LIB_PARSE_H__
 #include "btree.h"
 #include "list.h"
+#include "std_functions.h"
+
+class parser_btree_item_t;
+class parser_string_list_item_t;
+class parser_idx_list_item_t;
 
 #define expr2val atof
 #define parser_val_t float
 
-class parser_btree_item_t;
-
-typedef int op_id;
-
-struct operation {
-	op_id  id;
+struct operation_t {
+	op_id_t  id;
 	char 	*op;
-	parser_btree_item_t *(* expand_fptr)(struct operation *me, parser_btree_item_t **btnodesarray, list_t *tk_indexes);
+	parser_btree_item_t *(* expand_fptr)(struct operation_t *me, parser_btree_item_t **btnodesarray, list_t *tk_indexes);
 };
 
 ///Node possible states
@@ -35,11 +36,35 @@ typedef enum{
 class parser_btree_item_t:public list_item_t, public btree_item_t {
 public:
 	char *expr;
-	op_id op;
+	op_id_t op;
 	state st;
 	parser_val_t val;
+public:
+	parser_btree_item_t(){
+			expr=NULL;
+			op=NOTOP;
+	}
+	virtual ~parser_btree_item_t(){
+			if(expr)free(expr);
+	}
 };
 
+class parser_idx_list_item_t: public list_item_t{
+public:
+	int idx;
+public:
+	parser_idx_list_item_t(){};
+	parser_idx_list_item_t(int idx){this->idx=idx;};
+};
+
+class parser_string_list_item_t: public list_item_t{
+public:
+	char *str;
+public:
+	parser_string_list_item_t(){str=NULL;}
+	parser_string_list_item_t(char *str){this->str=str;}
+	~parser_string_list_item_t(){if(str) free(str);}
+};
 
 class parser_func_def_t:public list_item_t, public btree_item_t{
 public:
@@ -124,5 +149,9 @@ parser_val_t parser_calc(parser_t *p, char *expr);
   * Destroyer to invoke when done with parsing
   */
 void parser_destroy(parser_t *p);
+
+static struct operation_t operation[NOTOP];
+
+#include "std_functions_expand.h"
 
 #endif

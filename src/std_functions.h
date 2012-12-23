@@ -12,10 +12,6 @@
  * variables definitions.
  */
 
-#include "btree.h"
-#include "list.h"
-#include "lib_parse.h"
-
 /**
  *	Priority in OP_ID is fundamental and is based on the logical priority 
  *	in operations calculus, that states for instance that
@@ -23,7 +19,7 @@
  */
 
 //			NAME			OP_ID (and priority)
-enum{
+typedef enum {
 	SUM			=0,
 	SUB			=1,
 	EXP			=2,
@@ -40,7 +36,7 @@ enum{
 	LOG10		=13,
 	//This confines the number of operators
 	NOTOP		=14,
-};
+} op_id_t;
 
 //			NAME			OP (string)
 #define	SUM_OP 		"+"
@@ -57,7 +53,5 @@ enum{
 #define	LOGN_OP	 	"logn"
 #define	LOG2_OP	 	"log2"
 #define	LOG10_OP	"log10"
-
-static struct operation operation[NOTOP];
 
 #endif
