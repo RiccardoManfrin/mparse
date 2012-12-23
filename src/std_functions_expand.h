@@ -1,7 +1,7 @@
 #include "list.h"
 #include "btree.h"
 
-parser_btree_item_t * fill_operator_node(op_id optor);
+parser_btree_item_t * fill_operator_node(op_id_t optor);
 parser_btree_item_t * fill_operand_node(char * expr);
 
 /** 
@@ -184,7 +184,7 @@ static parser_btree_item_t * (* expand_log2_func)(struct operation_t *, parser_b
 #define LOG10_EXPAND expand_log10_func
 static parser_btree_item_t * (* expand_log10_func)(struct operation_t *, parser_btree_item_t **, list_t *) = expand_1op_func;
 
-static void bind_op(op_id id, char *expr, parser_btree_item_t *(* expand_fptr)(struct operation_t *me, parser_btree_item_t **btnodesarray, list_t *tk_indexes)){
+static void bind_op(op_id_t id, char *expr, parser_btree_item_t *(* expand_fptr)(struct operation_t *me, parser_btree_item_t **btnodesarray, list_t *tk_indexes)){
 	operation[id].id = id;
 	operation[id].op = expr;
 	operation[id].expand_fptr = expand_fptr;
