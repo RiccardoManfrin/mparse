@@ -24,10 +24,6 @@
 
 //************************************ STATIC FUNCTIONS DECLARATION *********************************//
 
-/**
- * Parser binary tree node free function
- */
-static void parser_bt_node_t_free(void *pn);
 
 /**
  * Parser variables free function
@@ -86,10 +82,6 @@ static list_t* find_extern_brakets(parser_btree_item_t *node, bool *found_except
  */
 static list_t* find_extern_highest_prio_op(list_t *brackets, char *expr, op_id_t *found_op, bool *found_exception);
 
-/**
- * Free the complex parser_bt_node_t structure
- */
-static void parser_bt_node_t_free(void *pn);
 
 /**
  * Free a variable definition
@@ -131,16 +123,6 @@ static parser_btree_item_t * expand_tree(list_t *userfunctions, parser_btree_ite
 static char * parser_func_replace(char *func_instance, list_t *userfunctions);
 
 //************************************* STATIC FUNCTIONS DEFINITION *********************************//
-
-
-static void parser_bt_node_t_free(void *pn) {
-	if(pn)
-	{
-		if( ((parser_btree_item_t*)pn)->expr ) free( ((parser_btree_item_t*)pn)->expr );
-		free(pn);
-	}
-	return;
-}
 
 static void parser_var_free(void *var_def){
 		if(var_def)
@@ -337,7 +319,6 @@ parser_btree_item_t * fill_operator_node(op_id_t optor){
 parser_btree_item_t * fill_operand_node(char * expr){
 	
 	parser_btree_item_t *data= new parser_btree_item_t();
-	memset(data, 0, sizeof(parser_btree_item_t));
 	//***************************//
 	data->expr = expr;
 	data->st = EXPAND;
@@ -818,10 +799,10 @@ static void parser_clean(parser_btree_item_t *root){
 //***************************************************************************************************//
 
 int parser_func(parser_t *p, char *function, char *replacement_expr){
-	((parser_data_t*)p->data)->toupdate = true;
+	p->data->toupdate = true;
 	//TODO Check if function is already defined
 	//Else create new one
-	parser_func_def_t *newfunc = malloc(sizeof(parser_func_def_t));
+	parser_func_def_t *newfunc = new parser_func_def_t();
 	newfunc->name = malloc(strlen(function));
 	newfunc->def = malloc(strlen(replacement_expr));
 	memcpy(newfunc->name, function, strlen(function));
@@ -859,16 +840,12 @@ parser_t * parser_new(){
 	//Common intialization stuff can be put here [DONE ONCE AND FOREVER]
 	parser_init();
 	
-	parser_data_t *data =(parser_data_t*)malloc(sizeof(parser_data_t));
-	data->expr=NULL;
-	data->toupdate=false;
+	parser_data_t *data =new parser_data_t();
 	
 	//Root generation [DONE ONCE AND FOREVER]
-	btree_t *bt = new btree_t();
 	parser_btree_item_t *p =  new parser_btree_item_t();
-	p->st = EXPAND;
-	p->expr = NULL;
 	//Filling the root with the expression [DONE ONCE AND FOREVER]
+	btree_t *bt = new btree_t();
 	bt->root = p;
 
 	parser_t *newparser = malloc(sizeof(parser_t));
@@ -902,40 +879,43 @@ void parser_expand(parser_t *p, char *expr){
 	return;
 }
 
-parser_val_t parser_calc(parser_t *p,char *expr){
+parser_val_t parser_config(parser_t *p,char *expr){
 	//We can do better than plain clean by
 	//updating only branches with modified variable's
 	//values; for we use parser_clean
-	if( ((parser_data_t*)p->data)->toupdate == true )
+	if( p->data->toupdate == true )
 	{
-		if( ((parser_data_t*)p->data)->expr != NULL )
+		if( p->data->expr != NULL )
 		{
-			free( ((parser_data_t*)p->data)->expr );
+			free( p->data->expr );
 		}
-		((parser_data_t*)p->data)->expr = (char *) malloc(strlen(expr)+1);
+		p->data->expr = (char *) malloc(strlen(expr)+1);
 	}
-	else if(((parser_data_t*)p->data)->expr == NULL)
+	else if(p->data->expr == NULL)
 	{
-		((parser_data_t*)p->data)->expr = (char *) malloc(strlen(expr)+1);
-		((parser_data_t*)p->data)->toupdate = true;
+		p->data->expr = (char *) malloc(strlen(expr)+1);
+		p->data->toupdate = true;
 	}
-	else if (strlen(((parser_data_t*)p->data)->expr)!= strlen(expr))
+	else if (strlen(p->data->expr)!= strlen(expr))
 	{
-		free( ((parser_data_t*)p->data)->expr );
-		((parser_data_t*)p->data)->expr = (char *) malloc(strlen(expr)+1);
-		((parser_data_t*)p->data)->toupdate = true;
+		free( p->data->expr );
+		p->data->expr = (char *) malloc(strlen(expr)+1);
+		p->data->toupdate = true;
 	}
-	else if(memcmp(((parser_data_t*)p->data)->expr, expr, strlen(expr))!=0)
+	else if(memcmp(p->data->expr, expr, strlen(expr))!=0)
 	{
-		((parser_data_t*)p->data)->toupdate = true;
+		p->data->toupdate = true;
 	}
 	
-	if ( ((parser_data_t*)p->data)->toupdate == true )
+	if ( p->data->toupdate == true )
 	{	
-		memcpy( ((parser_data_t*)p->data)->expr, expr, strlen(expr)+1 );
-		((parser_data_t*)p->data)->toupdate = false;
+		memcpy( p->data->expr, expr, strlen(expr)+1 );
+		p->data->toupdate = false;
 		parser_expand(p,expr);
 	}
+}
+
+parser_val_t parser_calc(parser_t *p){
 	parser_clean((parser_btree_item_t *) p->pstruct->root);
 	return parser_bt_calc((parser_btree_item_t *) p->pstruct->root, p->vars);
 }
@@ -943,7 +923,7 @@ parser_val_t parser_calc(parser_t *p,char *expr){
 void parser_destroy(parser_t *p){
 	if(p->vars) delete p->vars; //parser_var_free needs to be invoked on items
 	if(p->lfunctions) delete p->lfunctions;//parser_func_free needs to be invoked on items
-	if(p->pstruct) delete p->pstruct;//parser_bt_node_t_free needs to be invoked on items
+	if(p->pstruct) delete p->pstruct;
 	if(p) free(p); p=NULL;
 	return;
 }

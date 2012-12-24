@@ -32,8 +32,7 @@ static parser_btree_item_t * expand_std_2op_func(struct operation_t *me, parser_
 		///ROOT Filling
 		bt[count] = fill_operator_node(me->id);
 		
-		i=to_append;
-		unsigned int operands_start_index=0, operands_upperlayer=0;
+		int operands_start_index=0, operands_upperlayer=0;
 		///Nodes left to fill
 		while (to_append < n_internal_nodes + n_external_nodes)
 		{
@@ -152,7 +151,7 @@ static parser_btree_item_t * expand_1op_func(struct operation_t *me, parser_btre
 	bt[0] = fill_operator_node(me->id);
 	
 	///RIGHT Filling (operand)
-	bt[1] = fill_operand_node((((parser_btree_item_t *) tokens->pop(1)))->expr);
+	bt[1] = fill_operand_node((((parser_string_list_item_t *) tokens->pop(1)))->str);
 	
 	///Connecting
 	bt[0]->right = bt[1];

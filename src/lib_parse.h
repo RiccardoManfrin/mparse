@@ -43,6 +43,7 @@ public:
 	parser_btree_item_t(){
 			expr=NULL;
 			op=NOTOP;
+			st=EXPAND;
 	}
 	virtual ~parser_btree_item_t(){
 			if(expr)free(expr);
@@ -82,6 +83,11 @@ class parser_data_t:public list_item_t, public btree_item_t{
 public:
 	char *expr;
 	bool toupdate;
+public:
+	parser_data_t(){
+		expr=NULL;
+		toupdate=false;
+	}
 };
 
 
@@ -89,7 +95,7 @@ typedef struct{
 	list_t  *vars;
 	list_t  *lfunctions;
 	btree_t *pstruct;
-	void  *data;
+	parser_data_t *data;
 } parser_t;
 
  /**
@@ -140,10 +146,15 @@ parser_t * parser_new();
   */
 void parser_expand(parser_t *p, char *expr);
 
+/**
+ * Expand the parser based on argument expression
+ */
+parser_val_t parser_config(parser_t *p, char *expr);
+
  /**
   * Calculate the result of the expression
   */
-parser_val_t parser_calc(parser_t *p, char *expr);
+parser_val_t parser_calc(parser_t *p);
 
  /**
   * Destroyer to invoke when done with parsing
