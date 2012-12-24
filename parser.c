@@ -49,11 +49,11 @@ int main(int args, char *argv[])
 		parser_var(p,"x", 4);
 		
 
+		parser_config(p,argv[1]);
 		
 		//Calculating result
-		parser_val_t res;
- 		//MEASURE_TIME(res = parser_calc(p,argv[1]));
-		res = parser_calc(p,argv[1]);
+		//MEASURE_TIME(res = parser_calc(p,argv[1]));
+		parser_val_t res = parser_calc(p); 
 		printf("result = %f\n", res);
 		
 // 		//Changing variable
