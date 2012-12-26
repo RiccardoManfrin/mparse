@@ -12,6 +12,7 @@
 
 
 btree_item_t::btree_item_t(){
+	parent=NULL;
 	left=NULL;
 	right=NULL;
 }

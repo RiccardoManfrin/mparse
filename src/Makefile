@@ -2,7 +2,7 @@ CC=g++
 LD=ld
 CPP=g++
 
-OBJ= list.o btree.o exception.o debug.o lib_parse.o
+OBJ= list.o btree.o parser.o exception.o debug.o lib_parse.o
 LIBNAME=parse
 LIBOPTIONS=-fPIC
 CFLAGS=-Wall $(LIBOPTIONS) -g3 -fpermissive
@@ -14,7 +14,7 @@ all: libparse.so
 libparse.so: $(OBJ)
 	$(CC) -shared -Wl,-soname,lib$(LIBNAME).so -o lib$(LIBNAME).so  $(OBJ)
 
-lib_parse.o: list.cpp list.h btree.cpp btree.h lib_parse.cpp lib_parse.h exception.c exception.h defines.h debug.c debug.h std_functions.h
+lib_parse.o: list.cpp list.h btree.cpp btree.h parser.cpp parser.h lib_parse.cpp lib_parse.h exception.c exception.h defines.h debug.c debug.h std_functions.h
 	$(CPP) $(CFLAGS) -c lib_parse.cpp
 
 list.o: list.cpp list.h
@@ -22,6 +22,9 @@ list.o: list.cpp list.h
 
 btree.o: btree.cpp btree.h
 	$(CPP) $(CFLAGS) -c btree.cpp
+
+parser.o: parser.cpp parser.h
+	$(CPP) $(CFLAGS) -c parser.cpp
 
 exception.o: exception.c exception.h
 	$(CC) $(CFLAGS) -c exception.c

@@ -15,6 +15,7 @@ class btree_item_t;
 class btree_item_t{
 	friend class btree_t;
 public:
+	btree_item_t *parent;
 	btree_item_t *left;
 	btree_item_t *right;
 public:
