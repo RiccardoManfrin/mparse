@@ -28,8 +28,8 @@ void list_t::swap(uint32_t a, uint32_t b)
 	else 			return;
 	if ( max<count() )
 	{
-		list_item_t *prev_a=NULL, *next_a;
-		list_item_t *prev_b=NULL, *next_b;
+		list_item_t *prev_a=NULL;
+		list_item_t *prev_b=NULL;
 
 		///Setting pointers
 		if(a>0){
@@ -51,8 +51,6 @@ void list_t::swap(uint32_t a, uint32_t b)
 		};
 		list_item_t *item_a= (prev_a)?(prev_a->next):(head);
 		list_item_t *item_b= (prev_b)?(prev_b->next):(head);
-		next_a=item_a->next;
-		next_b=item_b->next;
 		
 		(prev_a?prev_a->next:head)=item_b;
 		(prev_b?prev_b->next:head)=item_a;
@@ -174,6 +172,7 @@ void list_t::print()
 
 void list_t::reverse()
 {
+	//TODO: do it better with pop from head and push onto a new list
 	uint32_t last = count()-1;
 	
 	uint32_t first = 0;

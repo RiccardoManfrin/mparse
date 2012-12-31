@@ -6,7 +6,7 @@ LD=ld
 TARGET=parser
 #LIBOPTIONS=-fPIC
 CFLAGS=-Wall $(LIBOPTIONS) -g3
-LIBS=-lparse -lm
+LIBS=-lmparse -lm
 LDFLAGS=-g3 -L./src/ $(LIBS)
 
 all: parser
