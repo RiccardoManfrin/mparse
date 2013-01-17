@@ -7,8 +7,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "btree.h"
-#include "exception.h"
-#include "debug.h"
 
 
 btree_item_t::btree_item_t(){

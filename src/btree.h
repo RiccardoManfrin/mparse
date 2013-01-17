@@ -8,6 +8,7 @@
 #define BTREE_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 class btree_t;
 class btree_item_t;
