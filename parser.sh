@@ -1,1 +1,1 @@
-LD_LIBRARY_PATH=:./ ./parser $1
+LD_LIBRARY_PATH=:./src ./parser $1
