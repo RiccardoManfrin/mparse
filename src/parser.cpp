@@ -17,28 +17,50 @@
 #include <math.h>
 #include "parser.h"
 
-mparser_t::operator_t mparser_t::operator_t::operators[OPERATORS_NUM];
+static const char 	*SUM_OP_STR = "+";
+static const char 	*SUB_OP_STR = "-";
+static const char  	*EXP_OP_STR = "^";
+static const char 	*MULT_OP_STR = "*";
+static const char 	*DIV_OP_STR = "/";
+static const char 	*MOD_OP_STR = "%";
+static const char 	*COS_OP_STR = "cos";
+static const char 	*SIN_OP_STR = "sin";
+static const char 	*ATAN_OP_STR = "atan";
+static const char  	*TAN_OP_STR = "tan";
+static const char 	*NEP_OP_STR = "exp";
+static const char 	*LOGN_OP_STR = "logn";
+static const char 	*LOG2_OP_STR = "log2";
+static const char 	*LOG10_OP_STR = "log10";
+
+typedef struct{
+	op_id_t id;
+	const char *op;
+	parser_item_t * (*expand_fptr)(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
+}op_t;
+
+op_t supported_operators[OPERATORS_NUM] = 
+	{
+		{SUM, 		SUM_OP_STR, mparser_t::expand_std_2op_func},
+		{SUB, 		SUB_OP_STR, mparser_t::expand_std_2op_func},
+		{EXP, 		EXP_OP_STR, mparser_t::expand_alt_2op_func},
+		{MULT, 		MULT_OP_STR, mparser_t::expand_std_2op_func},
+		{DIV, 		DIV_OP_STR, mparser_t::expand_std_2op_func},
+		{MOD, 		MOD_OP_STR, mparser_t::expand_alt_2op_func},
+		{COS, 		COS_OP_STR, mparser_t::expand_1op_func},
+		{SIN, 		SIN_OP_STR, mparser_t::expand_1op_func},
+		{ATAN, 		ATAN_OP_STR, mparser_t::expand_1op_func},
+		{TAN, 		TAN_OP_STR, mparser_t::expand_1op_func},
+		{NEP, 		NEP_OP_STR, mparser_t::expand_1op_func},
+		{LOGN, 		LOGN_OP_STR, mparser_t::expand_1op_func},
+		{LOG2, 		LOG2_OP_STR, mparser_t::expand_1op_func},
+		{LOG10, 	LOG10_OP_STR, mparser_t::expand_1op_func},
+	};
 
 mparser_t::mparser_t()
 {
 	uservars= new list_t();
 	userfunctions= new list_t();
 	tree=NULL;
-}
-void mparser_t::init()
-{
-	operator_t::init();
-}
-
-void mparser_t::operator_t::init()
-{
-	unsigned int optors_idx;
-	for(optors_idx=0; optors_idx<OPERATORS_NUM; optors_idx++){
-		operator_t::operators[optors_idx].id = (op_id_t) optors_idx;
-		operator_t::operators[optors_idx].op = optors_str[optors_idx];
-		//TODO methods expand.. should belong to operator as private and have a pointer target right one!!!
-		operator_t::operators[optors_idx].expand_fptr = operator_t::expand_std_2op_func;
-	}
 }
 
 mparser_t::~mparser_t()
@@ -168,7 +190,7 @@ parser_item_t* mparser_t::expand(parser_item_t* node)
 		unsigned int op_idx;
 		unsigned int op_len;
 		for (op_idx=0; op_idx <OPERATORS_NUM ; op_idx++){
-			char *tf = (char *)operator_t::operators[op_idx].op; //Token to find
+			char *tf = (char *)supported_operators[op_idx].op; //Token to find
 			op_len=strlen(tf);
 			unsigned int expr_len = strlen(expr);
 			unsigned int expr_idx;
@@ -297,7 +319,7 @@ parser_item_t* mparser_t::expand(parser_item_t* node)
 			
 			parser_item_t **bt = (parser_item_t **)malloc(sizeof(parser_item_t*)*(n_internal_nodes+n_external_nodes));
 			if(op_idx< OPERATORS_NUM){
-				operator_t::operators[op_idx].expand_fptr(this, operator_t::operators[op_idx].id, bt, tokens);
+				supported_operators[op_idx].expand_fptr(this, supported_operators[op_idx].id, bt, tokens);
 			}else{
 				delete tokens;
 				return NULL;
@@ -431,13 +453,13 @@ char * mparser_t::userfunction_replace(char* func_instance)
 			{
 				for(i=0;i<OPERATORS_NUM;i++)
 				{
-					if(memcmp(op,operator_t::operators[i].op,strlen(operator_t::operators[i].op))==0) //Beginning of an operator
+					if(memcmp(op,supported_operators[i].op,strlen(supported_operators[i].op))==0) //Beginning of an operator
 					{
 						beginOk=true;
-						op+=strlen(operator_t::operators[i].op);
-						memcpy(&ptrtarget[offsettarget], &ptrcurr[offsetcurr], strlen(operator_t::operators[i].op));
-						offsettarget+=strlen(operator_t::operators[i].op);
-						offsetcurr+=strlen(operator_t::operators[i].op);
+						op+=strlen(supported_operators[i].op);
+						memcpy(&ptrtarget[offsettarget], &ptrcurr[offsetcurr], strlen(supported_operators[i].op));
+						offsettarget+=strlen(supported_operators[i].op);
+						offsetcurr+=strlen(supported_operators[i].op);
 						break;
 					}
 				}
@@ -461,7 +483,7 @@ char * mparser_t::userfunction_replace(char* func_instance)
 						
 						for(i=0;i<OPERATORS_NUM;i++)
 						{
-							if(memcmp(op,operator_t::operators[i].op,strlen(operator_t::operators[i].op))==0){found=true;}
+							if(memcmp(op,supported_operators[i].op,strlen(supported_operators[i].op))==0){found=true;}
 						}
 					}
 					if(found==true)
@@ -587,7 +609,7 @@ error:
 }
 
 /***************************** Parser expand functions **********************************/
-parser_item_t * mparser_t::operator_t::expand_std_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
+parser_item_t * mparser_t::expand_std_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
 	int operations = tokens->count()-1;
 	if(operations>0)
 	{
@@ -661,7 +683,7 @@ parser_item_t * mparser_t::operator_t::expand_std_2op_func(mparser_t *parser, op
 	return bt[0];
 }
 
-parser_item_t * mparser_t::operator_t::expand_alt_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
+parser_item_t * mparser_t::expand_alt_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
 	int operations = tokens->count()-1;
 	if(operations>0)
 	{	
@@ -707,7 +729,7 @@ parser_item_t * mparser_t::operator_t::expand_alt_2op_func(mparser_t *parser, op
 	return bt[0];
 }
 
-parser_item_t * mparser_t::operator_t::expand_1op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
+parser_item_t * mparser_t::expand_1op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
 	///ROOT Filling
 	bt[0] = parser_item_t::operator_node(parser, id);
 	

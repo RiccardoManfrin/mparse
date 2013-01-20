@@ -37,7 +37,6 @@ int main(int args, char *argv[])
 	{
 
 // 		INIT_TIMERS();
-		mparser_t::init();
 		mparser_t *p = new mparser_t();
 		p->function((char *)"f(a)",(char *)"cos(a)");
 		p->expression(argv[1]);

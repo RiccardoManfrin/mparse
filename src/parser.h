@@ -11,7 +11,26 @@
 #include "btree.h"
 #include "list.h"
 
-#include "operator.h"
+///@brief Operator ID value enum
+typedef enum {
+	SUM			=0,
+	SUB			=1,
+	EXP			=2,
+	MULT		=3,
+	DIV			=4,
+	MOD			=5,
+	COS			=6,
+	SIN			=7,
+	ATAN		=8,
+	TAN			=9,
+	NEP			=10,
+	LOGN		=11,
+	LOG2		=12,
+	LOG10		=13,
+	NOTOP		=14,
+} op_id_t;
+
+const unsigned int OPERATORS_NUM = 14;
 
 typedef float parser_val_t;
 
@@ -93,25 +112,15 @@ private:
 		}
 	};
 
+public:	
+	///@brief Standard 2 operands operator expander function
+	static parser_item_t * expand_std_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
+	///@brief Alternate 2 operands operator expander function
+	static parser_item_t * expand_alt_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
+	///@brief Standard 1 operand operator expander function
+	static parser_item_t * expand_1op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
 	
-	///@brief Operation information
-	class operator_t{
-	friend class mparser_t;
-	private:
-		///@brief Shared information on the standard supported operators
-		static operator_t operators[OPERATORS_NUM];
-	private:
-		static parser_item_t * expand_std_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
-		static parser_item_t * expand_alt_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
-		static parser_item_t * expand_1op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
-	public:
-		op_id_t  id;
-		const char 	*op;
-		parser_item_t *(* expand_fptr)(mparser_t *owner, op_id_t id, parser_item_t **btnodesarray, list_t *tk_indexes);
-	public:
-		static void init();
-	};
-public:
+
 	///@brief Function class definition
 	class function_def_t:public list_item_t, public btree_item_t{
 	public:
