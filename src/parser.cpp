@@ -625,7 +625,9 @@ parser_item_t * mparser_t::operator_t::expand_std_2op_func(mparser_t *parser, op
 			///LEFT Filling (to_append > internal && external > to_append) ==> (operand) 
 			else
 			{
-				bt[to_append] = parser_item_t::operand_node(parser, ((mparser_t::parser_list_item_t *)(tokens->pop(((operands_upperlayer--)>0)?(operands_start_index):(0))))->str);
+				mparser_t::parser_list_item_t *ptr = (mparser_t::parser_list_item_t *)tokens->pop(((operands_upperlayer--)>0)?(operands_start_index):(0));
+				bt[to_append] = parser_item_t::operand_node(parser, ptr->str);
+				delete ptr;
 			}
 			///Connecting
 			bt[count]->left = bt[to_append];
@@ -642,7 +644,9 @@ parser_item_t * mparser_t::operator_t::expand_std_2op_func(mparser_t *parser, op
 			///RIGHT Filling (to_append > internal && external> to_append) ==> (operand)
 			else
 			{
-				bt[to_append] = parser_item_t::operand_node(parser, ((mparser_t::parser_list_item_t *)tokens->pop((((operands_upperlayer--))>0)?(operands_start_index):(0)))->str);
+				mparser_t::parser_list_item_t *ptr = (mparser_t::parser_list_item_t *) tokens->pop(((operands_upperlayer--)>0)?(operands_start_index):(0));
+				bt[to_append] = parser_item_t::operand_node(parser, ptr->str);
+				delete ptr;
 			}
 			///Connecting
 			bt[count]->right = bt[to_append];
@@ -669,14 +673,18 @@ parser_item_t * mparser_t::operator_t::expand_alt_2op_func(mparser_t *parser, op
 		tokens->reverse();
 		while (to_append < n_internal_nodes + n_external_nodes)
 		{
-			bt[to_append] = parser_item_t::operand_node(parser, ((parser_item_t *) tokens->pop((uint32_t)0))->expr);
+			parser_item_t *ptr = (parser_item_t *) tokens->pop((uint32_t)0);
+			bt[to_append] = parser_item_t::operand_node(parser, ptr->expr);
+			delete ptr;
 			bt[count]->right = bt[to_append];
 			///Incrementing node to attach
 			to_append++;
 			if(to_append == n_internal_nodes + n_external_nodes - 1)
 			{
 				///We got to the leftmost node (it's an operand!)
-				bt[to_append] = parser_item_t::operand_node(parser, ((parser_item_t *) tokens->pop((uint32_t)0))->expr);
+				parser_item_t *ptr = (parser_item_t *)tokens->pop((uint32_t)0);
+				bt[to_append] = parser_item_t::operand_node(parser, ptr->expr);
+				delete ptr;
 				bt[count]->left = bt[to_append];
 				break;
 			}
@@ -700,7 +708,10 @@ parser_item_t * mparser_t::operator_t::expand_1op_func(mparser_t *parser, op_id_
 	bt[0] = parser_item_t::operator_node(parser, id);
 	
 	///RIGHT Filling (operand)
-	bt[1] = parser_item_t::operand_node(parser, (((mparser_t::parser_list_item_t *) tokens->pop(1)))->str);
+	mparser_t::parser_list_item_t *ptr = (mparser_t::parser_list_item_t *)tokens->pop(1);
+	bt[1] = parser_item_t::operand_node(parser, ptr->str);
+	delete ptr;
+	
 	
 	///Connecting
 	bt[0]->right = bt[1];
