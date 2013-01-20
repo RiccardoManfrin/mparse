@@ -37,32 +37,13 @@ int main(int args, char *argv[])
 	{
 
 // 		INIT_TIMERS();
-		
-// 		//Generating new parser
-// 		parser_t *p = parser_new();
-// 		//Defining function
-// 		parser_func(p,"f(a)","cos(a)");
-// 		//Defining a variable
-// 		parser_var(p,"x", 4);
-// 		
-// 
-// 		parser_config(p,argv[1]);
-// 		
-// 		//Calculating result
-// 		//MEASURE_TIME(res = parser_calc(p,argv[1]));
-// 		parser_val_t res = parser_calc(p); 
-// 		printf("result = %f\n", res);
-// 		
-// // 		//Changing variable
-// // 		int i; for(i=0;i<100;i++)
-// // 		{
-// // 			parser_var(p,"x", i);
-// // 			//Calculating result
-// // 			//MEASURE_TIME(res = parser_calc(p,argv[1]));
-// // 			res = parser_calc(p,"f(x/100)");
-// // 			printf("%f\n", res);
-// // 		}
-// 		parser_destroy(p);
+		mparser_t::init();
+		mparser_t *p = new mparser_t();
+		p->function((char *)"f(a)",(char *)"cos(a)");
+		p->expression(argv[1]);
+		parser_val_t res = p->calculate(); 
+		printf("result = %f\n", res);
+		delete p;
 	}
 	return 0;
 }

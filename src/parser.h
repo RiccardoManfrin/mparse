@@ -15,40 +15,21 @@
 
 typedef float parser_val_t;
 
-///Parser btree Node possible states
-typedef enum{
-	///Node holds an expression to be parsed
-	EXPAND,
-	///Node doesn't need further expansion and is to be calculated
-	CALCULATE,
-	///Node has the numerical result value so we can use it for the above node computation.
-	CALCULATED
-} state_t;
-
-class parser_list_item_t;
-class operator_t;
-class parser_item_t;
 class mparser_t;
-
-
-///@brief Parser tokens list
-class parser_list_item_t: public list_item_t{
-public:
-	char *str;
-public:
-	parser_list_item_t(){str=NULL;}
-	parser_list_item_t(char *str){this->str=str;}
-	~parser_list_item_t(){if(str) free(str);}
-	virtual bool compare(list_item_t* comparable){
-		return ( ((parser_list_item_t *)comparable)->str == str);
-	}
-};
-
-
 
 ///@brief Basic parser structure
 class parser_item_t: public btree_item_t, public list_item_t{
 	friend class mparser_t;
+private:
+	///@brief Parser btree Node possible states
+	typedef enum{
+		///Node holds an expression to be parsed
+		EXPAND,
+		///Node doesn't need further expansion and is to be calculated
+		CALCULATE,
+		///Node has the numerical result value so we can use it for the above node computation.
+		CALCULATED
+	} state_t;
 private:
 	mparser_t *owner;
 public:
@@ -94,31 +75,42 @@ public:
 
 
 
-
-///@brief Operation information
-class operator_t{
-friend class mparser_t;
-private:
-	///@brief Shared information on the standard supported operators
-	static operator_t operators[OPERATORS_NUM];
-private:
-	static parser_item_t * expand_std_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
-	static parser_item_t * expand_alt_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
-	static parser_item_t * expand_1op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
-public:
-	op_id_t  id;
-	const char 	*op;
-	parser_item_t *(* expand_fptr)(mparser_t *owner, op_id_t id, parser_item_t **btnodesarray, list_t *tk_indexes);
-public:
-	static void init();
-};
-
-
-
-
 ///@brief Mathematical parser object
 class mparser_t {
-	friend class parser_item_t;
+	friend class parser_item_t; //Required to access to user vars and functions list
+	friend class operator_t; //Required to access to parser_list_item_t class methods
+private:
+	///@brief Parser tokens list to support expression parsing
+	class parser_list_item_t: public list_item_t{
+	public:
+		char *str;
+	public:
+		parser_list_item_t(){str=NULL;}
+		parser_list_item_t(char *str){this->str=str;}
+		~parser_list_item_t(){if(str) free(str);}
+		virtual bool compare(list_item_t* comparable){
+			return ( ((parser_list_item_t *)comparable)->str == str);
+		}
+	};
+
+	
+	///@brief Operation information
+	class operator_t{
+	friend class mparser_t;
+	private:
+		///@brief Shared information on the standard supported operators
+		static operator_t operators[OPERATORS_NUM];
+	private:
+		static parser_item_t * expand_std_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
+		static parser_item_t * expand_alt_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
+		static parser_item_t * expand_1op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens);
+	public:
+		op_id_t  id;
+		const char 	*op;
+		parser_item_t *(* expand_fptr)(mparser_t *owner, op_id_t id, parser_item_t **btnodesarray, list_t *tk_indexes);
+	public:
+		static void init();
+	};
 public:
 	///@brief Function class definition
 	class function_def_t:public list_item_t, public btree_item_t{

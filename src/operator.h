@@ -32,7 +32,6 @@ typedef enum {
 	LOGN		=11,
 	LOG2		=12,
 	LOG10		=13,
-	//This confines the number of operators
 	NOTOP		=14,
 } op_id_t;
 

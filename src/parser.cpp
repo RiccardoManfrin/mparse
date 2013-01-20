@@ -17,12 +17,12 @@
 #include <math.h>
 #include "parser.h"
 
-operator_t operator_t::operators[OPERATORS_NUM];
+mparser_t::operator_t mparser_t::operator_t::operators[OPERATORS_NUM];
 
 mparser_t::mparser_t()
 {
-	uservars=NULL;
-	userfunctions=NULL;
+	uservars= new list_t();
+	userfunctions= new list_t();
 	tree=NULL;
 }
 void mparser_t::init()
@@ -30,7 +30,7 @@ void mparser_t::init()
 	operator_t::init();
 }
 
-void operator_t::init()
+void mparser_t::operator_t::init()
 {
 	unsigned int optors_idx;
 	for(optors_idx=0; optors_idx<OPERATORS_NUM; optors_idx++){
@@ -72,7 +72,7 @@ void mparser_t::function(char* name, char* expanded)
 		found->def = expanded;
 		delete func;
 	}else{
-		uservars->push(func);
+		userfunctions->push(func);
 	}
 }
 
@@ -86,13 +86,13 @@ void mparser_t::expression(char * expr)
 	memcpy(rootexpr,expr, len-1);
 	rootexpr[len-1]=0;
 	root->expr = rootexpr;
-	root->st = EXPAND;
+	root->st = parser_item_t::EXPAND;
 	tree->root = expand(root);
 }
 
 parser_item_t* mparser_t::expand(parser_item_t* node)
 {
-	if(node->st == EXPAND)
+	if(node->st == parser_item_t::EXPAND)
 	{
 		char *expr = node->expr;
 		//Phase 1 : finding external brackets
@@ -233,7 +233,7 @@ parser_item_t* mparser_t::expand(parser_item_t* node)
 				node = expand(node);
 			}else{
 				node->op =NOTOP;
-				node->st =CALCULATE;
+				node->st =parser_item_t::CALCULATE;
 				//It is either a variable or constant value
 				//TODO: distinguish variable and create a bindings to them.
 			}
@@ -242,7 +242,6 @@ parser_item_t* mparser_t::expand(parser_item_t* node)
 			unsigned int operations = hpooeb->count();
 			int n_internal_nodes = operations;
 			int n_external_nodes = n_internal_nodes+1;
-			unsigned int count = 0;
 			
 			list_t *tokens = new list_t();
 			char *token;
@@ -265,6 +264,7 @@ parser_item_t* mparser_t::expand(parser_item_t* node)
 				} else {
 					//This is a syntax error (it means we found 2 
 					//optors with nothing in the middle)
+					delete tokens;
 					return NULL;
 				}
 				ptr = (parser_list_item_t *)ptr->next;
@@ -290,24 +290,22 @@ parser_item_t* mparser_t::expand(parser_item_t* node)
 			} else {
 				//This is a syntax error (it means last operator
 				//has no argument)
+				delete tokens;
 				return NULL;
 			}
 			tokens->reverse();
 			
 			parser_item_t **bt = (parser_item_t **)malloc(sizeof(parser_item_t*)*(n_internal_nodes+n_external_nodes));
-			while(count < (n_internal_nodes+n_external_nodes))
-			{
-				bt[count] = new parser_item_t(this);
-				count++;
-			}
-			count = 0;
 			if(op_idx< OPERATORS_NUM){
 				operator_t::operators[op_idx].expand_fptr(this, operator_t::operators[op_idx].id, bt, tokens);
 			}else{
+				delete tokens;
 				return NULL;
 			}
 			delete node;
 			node = bt[0];
+			free(bt);
+			delete tokens;
 		}
 		delete hpooeb;
 	} //EOF IF st ==EXPAND
@@ -324,16 +322,21 @@ char * mparser_t::userfunction_replace(char* func_instance)
 {
 	//Finding function name
 	function_def_t *func = (function_def_t *) userfunctions->head;
-	while(func){
-		char *funcname =func->name;
-		unsigned int fneidx = 0;
-		while(funcname[fneidx]!='(') {fneidx++;}
-		if(memcmp(func_instance,funcname,fneidx)==0)
-		{
-			//Found
-			break;
+	if(func){
+		while(func){
+			char *funcname =func->name;
+			unsigned int fneidx = 0;
+			while(funcname[fneidx]!='(') {fneidx++;}
+			if(memcmp(func_instance,funcname,fneidx)==0)
+			{
+				//Found
+				break;
+			}
+			func=(function_def_t *)func->next;
 		}
-		func=(function_def_t *)func->next;
+	}else{
+		//Error: we expected a user function but did not find any suitable one
+		return NULL;
 	}
 
  	//printf("FUNC INSTANCE: %s\nFUNC NAME:%s\nFUNC DEF:%s\n",func_instance, fdef->name, fdef->def);
@@ -584,7 +587,7 @@ error:
 }
 
 /***************************** Parser expand functions **********************************/
-parser_item_t * operator_t::expand_std_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
+parser_item_t * mparser_t::operator_t::expand_std_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
 	int operations = tokens->count()-1;
 	if(operations>0)
 	{
@@ -622,7 +625,7 @@ parser_item_t * operator_t::expand_std_2op_func(mparser_t *parser, op_id_t id, p
 			///LEFT Filling (to_append > internal && external > to_append) ==> (operand) 
 			else
 			{
-				bt[to_append] = parser_item_t::operand_node(parser, ((parser_list_item_t *)(tokens->pop(((operands_upperlayer--)>0)?(operands_start_index):(0))))->str);
+				bt[to_append] = parser_item_t::operand_node(parser, ((mparser_t::parser_list_item_t *)(tokens->pop(((operands_upperlayer--)>0)?(operands_start_index):(0))))->str);
 			}
 			///Connecting
 			bt[count]->left = bt[to_append];
@@ -639,7 +642,7 @@ parser_item_t * operator_t::expand_std_2op_func(mparser_t *parser, op_id_t id, p
 			///RIGHT Filling (to_append > internal && external> to_append) ==> (operand)
 			else
 			{
-				bt[to_append] = parser_item_t::operand_node(parser, ((parser_list_item_t *)tokens->pop((((operands_upperlayer--))>0)?(operands_start_index):(0)))->str);
+				bt[to_append] = parser_item_t::operand_node(parser, ((mparser_t::parser_list_item_t *)tokens->pop((((operands_upperlayer--))>0)?(operands_start_index):(0)))->str);
 			}
 			///Connecting
 			bt[count]->right = bt[to_append];
@@ -652,7 +655,7 @@ parser_item_t * operator_t::expand_std_2op_func(mparser_t *parser, op_id_t id, p
 	return bt[0];
 }
 
-parser_item_t * operator_t::expand_alt_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
+parser_item_t * mparser_t::operator_t::expand_alt_2op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
 	int operations = tokens->count()-1;
 	if(operations>0)
 	{	
@@ -692,12 +695,12 @@ parser_item_t * operator_t::expand_alt_2op_func(mparser_t *parser, op_id_t id, p
 	return bt[0];
 }
 
-parser_item_t * operator_t::expand_1op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
+parser_item_t * mparser_t::operator_t::expand_1op_func(mparser_t *parser, op_id_t id, parser_item_t **bt, list_t *tokens){
 	///ROOT Filling
 	bt[0] = parser_item_t::operator_node(parser, id);
 	
 	///RIGHT Filling (operand)
-	bt[1] = parser_item_t::operand_node(parser, (((parser_list_item_t *) tokens->pop(1)))->str);
+	bt[1] = parser_item_t::operand_node(parser, (((mparser_t::parser_list_item_t *) tokens->pop(1)))->str);
 	
 	///Connecting
 	bt[0]->right = bt[1];
