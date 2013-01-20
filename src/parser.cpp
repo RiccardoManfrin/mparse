@@ -622,7 +622,8 @@ parser_item_t * mparser_t::expand_std_2op_func(mparser_t *parser, op_id_t id, pa
 		///ROOT Filling
 		bt[count] = parser_item_t::operator_node(parser, id);
 		
-		int operands_start_index=0, operands_upperlayer=0;
+		unsigned int operands_start_index=0;
+		int operands_upperlayer=0;
 		///Nodes left to fill
 		while (to_append < n_internal_nodes + n_external_nodes)
 		{
