@@ -14,7 +14,7 @@ all: libmparse.so
 libmparse.so: $(OBJ)
 	$(CC) -shared -Wl,-soname,lib$(LIBNAME).so -o lib$(LIBNAME).so  $(OBJ)
 
-parser.o: list.cpp list.h btree.cpp btree.h operator.h parser.cpp parser.h
+parser.o: list.cpp list.h btree.cpp btree.h parser.cpp parser.h
 	$(CPP) $(CFLAGS) -c parser.cpp
 	
 list.o: list.cpp list.h
