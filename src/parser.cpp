@@ -627,6 +627,7 @@ parser_item_t * mparser_t::operator_t::expand_std_2op_func(mparser_t *parser, op
 			{
 				mparser_t::parser_list_item_t *ptr = (mparser_t::parser_list_item_t *)tokens->pop(((operands_upperlayer--)>0)?(operands_start_index):(0));
 				bt[to_append] = parser_item_t::operand_node(parser, ptr->str);
+				ptr->str = NULL;
 				delete ptr;
 			}
 			///Connecting
@@ -646,6 +647,7 @@ parser_item_t * mparser_t::operator_t::expand_std_2op_func(mparser_t *parser, op
 			{
 				mparser_t::parser_list_item_t *ptr = (mparser_t::parser_list_item_t *) tokens->pop(((operands_upperlayer--)>0)?(operands_start_index):(0));
 				bt[to_append] = parser_item_t::operand_node(parser, ptr->str);
+				ptr->str = NULL;
 				delete ptr;
 			}
 			///Connecting
@@ -675,6 +677,7 @@ parser_item_t * mparser_t::operator_t::expand_alt_2op_func(mparser_t *parser, op
 		{
 			parser_item_t *ptr = (parser_item_t *) tokens->pop((uint32_t)0);
 			bt[to_append] = parser_item_t::operand_node(parser, ptr->expr);
+			ptr->expr = NULL;
 			delete ptr;
 			bt[count]->right = bt[to_append];
 			///Incrementing node to attach
@@ -684,6 +687,7 @@ parser_item_t * mparser_t::operator_t::expand_alt_2op_func(mparser_t *parser, op
 				///We got to the leftmost node (it's an operand!)
 				parser_item_t *ptr = (parser_item_t *)tokens->pop((uint32_t)0);
 				bt[to_append] = parser_item_t::operand_node(parser, ptr->expr);
+				ptr->expr = NULL;
 				delete ptr;
 				bt[count]->left = bt[to_append];
 				break;
@@ -710,6 +714,7 @@ parser_item_t * mparser_t::operator_t::expand_1op_func(mparser_t *parser, op_id_
 	///RIGHT Filling (operand)
 	mparser_t::parser_list_item_t *ptr = (mparser_t::parser_list_item_t *)tokens->pop(1);
 	bt[1] = parser_item_t::operand_node(parser, ptr->str);
+	ptr->str = NULL;
 	delete ptr;
 	
 	
