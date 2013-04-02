@@ -3,7 +3,7 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include "src/parser.h"
+#include "src/mparse.h"
 
 void elem_free(void * obj){
 	free(obj);
@@ -40,7 +40,11 @@ int main(int args, char *argv[])
 		mparser_t *p = new mparser_t();
 		p->function((char *)"f(a)",(char *)"cos(a)");
 		p->expression(argv[1]);
+		p->variable((char *) "x", 4);
 		parser_val_t res = p->calculate(); 
+		printf("result = %f\n", res);
+		p->variable((char *) "x", 3);
+		res = p->calculate(); 
 		printf("result = %f\n", res);
 		delete p;
 	}

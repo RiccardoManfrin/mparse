@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "list.h"
 
 list_item_t::list_item_t()
@@ -182,3 +183,24 @@ void list_t::reverse()
 	}
 	return;
 }
+
+list_t::iterator_t::iterator_t(list_t* l)
+{
+	assert(l);
+	curr = l->head;
+}
+bool list_t::iterator_t::next()
+{
+	if(curr && curr->next){
+		curr=curr->next;
+		return true;
+	}
+	return false;
+		
+}
+
+list_item_t* list_t::iterator_t::get()
+{
+	return curr;
+}
+

@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "parser.h"
+#include "mparse.h"
 
 static const char 	*SUM_OP_STR = "+";
 static const char 	*SUB_OP_STR = "-";
@@ -78,6 +78,17 @@ void mparser_t::variable(char* name, parser_val_t value)
 	variable_def_t * found = (variable_def_t *)uservars->find(var);
 	if(found) {
 		found->val = value;
+		list_t::iterator_t *iter = new list_t::iterator_t(found->refs);
+		parser_item_t *p = NULL;
+		do{
+			p = (parser_item_t *) iter->get();
+			if(p){
+				while (p != NULL){
+					p->st=parser_item_t::CALCULATE;
+					p=(parser_item_t *)p->parent;
+				}
+			}
+		}while(iter->next());
 		delete var;
 	}else{
 		uservars->push(var);
@@ -510,17 +521,20 @@ char * mparser_t::userfunction_replace(char* func_instance)
 	return res;
 }
 
-parser_val_t mparser_t::uservariable_replace(char* var_instance)
+bool mparser_t::uservariable_replace(parser_item_t *node)
 {
 	variable_def_t *v = (variable_def_t *)uservars->head;
 	while(v){
-		if(memcmp( v->name, var_instance, strlen(var_instance)) == 0)
+		if(memcmp( v->name, node->expr, strlen(node->expr)) == 0)
 		{
-			return v->val;
+			node->val = v->val;
+// 			//Adding reference to variable for possible update
+			v->refs->push(node);
+			return true;
 		}
 	}
 	//Error
-	return 0;
+	return false;
 }
 
 parser_val_t mparser_t::calculate(){
@@ -551,7 +565,7 @@ parser_val_t parser_item_t::calculate()
 				}
 				else
 				{
-					val =  owner->uservariable_replace(expr);
+					owner->uservariable_replace(this);
 				}
 				break;
 			}
@@ -655,6 +669,7 @@ parser_item_t * mparser_t::expand_std_2op_func(mparser_t *parser, op_id_t id, pa
 			}
 			///Connecting
 			bt[count]->left = bt[to_append];
+			bt[to_append]->parent = bt[count];
 			///Incrementing [ next is RIGHT ]
 			to_append++;
 			
@@ -675,6 +690,7 @@ parser_item_t * mparser_t::expand_std_2op_func(mparser_t *parser, op_id_t id, pa
 			}
 			///Connecting
 			bt[count]->right = bt[to_append];
+			bt[to_append]->parent = bt[count];
 			///Incrementing [next is LEFT]
 			to_append++;
 			///Incrementing node to attach new nodes to
@@ -703,6 +719,7 @@ parser_item_t * mparser_t::expand_alt_2op_func(mparser_t *parser, op_id_t id, pa
 			ptr->expr = NULL;
 			delete ptr;
 			bt[count]->right = bt[to_append];
+			bt[to_append]->parent = bt[count];
 			///Incrementing node to attach
 			to_append++;
 			if(to_append == n_internal_nodes + n_external_nodes - 1)
@@ -713,6 +730,7 @@ parser_item_t * mparser_t::expand_alt_2op_func(mparser_t *parser, op_id_t id, pa
 				ptr->expr = NULL;
 				delete ptr;
 				bt[count]->left = bt[to_append];
+				bt[to_append]->parent = bt[count];
 				break;
 			}
 			else
@@ -720,6 +738,7 @@ parser_item_t * mparser_t::expand_alt_2op_func(mparser_t *parser, op_id_t id, pa
 				///Filling left operator
 				bt[to_append] = parser_item_t::operator_node(parser, id);
 				bt[count]->left = bt[to_append];
+				bt[to_append]->parent = bt[count];
 			}
 			///Incrementing node to attach
 			to_append++;
@@ -743,6 +762,7 @@ parser_item_t * mparser_t::expand_1op_func(mparser_t *parser, op_id_t id, parser
 	
 	///Connecting
 	bt[0]->right = bt[1];
+	bt[1]->parent = bt[0];
 	bt[0]->left = NULL;
 	return bt[0];
 }

@@ -143,14 +143,19 @@ public:
 	public:
 		char * name;
 		parser_val_t val;
+		list_t *refs;
 	public:
 		variable_def_t(){
 			name=NULL;
+			refs = new list_t();
 		}
 		virtual bool compare(list_item_t* comparable){
 			variable_def_t *compared = (variable_def_t *)comparable;
 			if( compared->name == this->name ) return true;
 			return false;
+		}
+		~variable_def_t(){
+			delete refs;
 		}
 	};
 	
@@ -168,7 +173,7 @@ private:
 	///@brief User function replace function
 	char *userfunction_replace(char *func_instance);
 	///@brief User function replace function
-	parser_val_t uservariable_replace(char *var_instance);
+	bool uservariable_replace(parser_item_t *node);
 public:
 	///@brief Allocate parser
 	mparser_t();

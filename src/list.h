@@ -23,6 +23,15 @@ public:
 class list_t {
 public:
 	list_item_t *head;
+public:
+	class iterator_t{
+	private:
+		list_item_t *curr;
+	public:
+		iterator_t(list_t *l);
+		bool next();
+		list_item_t *get();
+	};
 private:
 	void swap(uint32_t a, uint32_t b);
 public:

@@ -14,12 +14,18 @@ all: parser
 parser: parser.o
 	$(CC)  -o $(TARGET) $(TARGET).o $(LDFLAGS)
 
-parser.o: libparse.so parser.c
+parser.o: libmparse.so parser.c
 	$(CC) $(CFLAGS) -c parser.c
 
-libparse.so:
+libmparse.so:
 	make -C src/
 
 clean:
 	rm parser *.o *.so.* *.so -rf
 	$(MAKE) -C src/ clean
+
+install:
+	make -C src/ install
+
+remove:
+	make -C src/ remove
