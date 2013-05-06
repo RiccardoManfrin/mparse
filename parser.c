@@ -40,13 +40,27 @@ int main(int args, char *argv[])
 		mparser_t *p = new mparser_t();
 		p->function((char *)"f(a)",(char *)"cos(a)");
 		p->expression(argv[1]);
-		p->variable((char *) "x", 4);
+		
+		p->variable((char *) "x", 3);
+		p->variable((char *) "y", 7);
 		parser_val_t res = p->calculate(); 
 		printf("result = %f\n", res);
-		p->variable((char *) "x", 3);
+		
+		p->variable((char *) "x", 11);
+		p->variable((char *) "y", 13);
+		res = p->calculate();
+		printf("result = %f\n", res);
+		
+		p->variable((char *) "x", 2);
+		p->variable((char *) "y", 3);
 		res = p->calculate(); 
 		printf("result = %f\n", res);
-		delete p;
+		
+		p->variable((char *) "x", 2);
+		p->variable((char *) "y", 3);
+		res = p->calculate(); 
+		printf("result = %f\n", res);
+// 		delete p;
 	}
 	return 0;
 }

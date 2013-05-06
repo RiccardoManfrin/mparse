@@ -55,6 +55,7 @@ public:
 	char *expr;
 	op_id_t op;
 	state_t st;
+	bool uservars_referenced;
 	parser_val_t val;
 	
 private:
@@ -66,6 +67,7 @@ public:
 			expr=NULL;
 // 			op=NOTOP;
 			st=EXPAND;
+			uservars_referenced = false;
 			this->owner = owner;
 	}
 	///@brief Destructor

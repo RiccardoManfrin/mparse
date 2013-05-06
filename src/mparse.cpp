@@ -529,9 +529,14 @@ bool mparser_t::uservariable_replace(parser_item_t *node)
 		{
 			node->val = v->val;
 // 			//Adding reference to variable for possible update
-			v->refs->push(node);
+			if(!node->uservars_referenced){
+				v->refs->push(node);
+				node->uservars_referenced = true;
+			}
 			return true;
+			
 		}
+		v = (variable_def_t *)(v->next);
 	}
 	//Error
 	return false;
