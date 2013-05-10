@@ -335,6 +335,7 @@ parser_item_t* mparser_t::expand(parser_item_t* node)
 				delete tokens;
 				return NULL;
 			}
+			bt[0]->parent = node->parent;
 			delete node;
 			node = bt[0];
 			free(bt);

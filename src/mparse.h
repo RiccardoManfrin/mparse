@@ -69,6 +69,7 @@ public:
 			st=EXPAND;
 			uservars_referenced = false;
 			this->owner = owner;
+			parent=NULL;
 	}
 	///@brief Destructor
 	virtual ~parser_item_t(){
